@@ -3,24 +3,676 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClickUp Dummy</title>
+  <title>Dummy Dashboard Project - ClickUp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      background: #f5f5f5;
-      color: #333;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sidebar-width: 240px;
+      --header-height: 56px;
+      --col-backlog: #e8384f;
+      --col-todo: #4169e1;
+      --col-progress: #f5a623;
+      --col-review: #7b68ee;
+      --col-done: #2ecc71;
+      --bg-main: #f0f1f5;
+      --bg-card: #ffffff;
+      --text-primary: #1a1a2e;
+      --text-secondary: #6b7280;
+      --shadow-card: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.12);
+      --radius: 8px;
     }
-    h1 {
-      font-size: 2.5rem;
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-width);
+      height: 100vh;
+      background: #1a1a2e;
+      color: #c4c4d4;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      transition: transform 0.25s ease;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .sidebar-logo svg { flex-shrink: 0; }
+
+    .sidebar-logo span {
+      font-weight: 700;
+      font-size: 15px;
+      color: #fff;
+      letter-spacing: -0.3px;
+    }
+
+    .sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+
+    .sidebar-section {
+      padding: 6px 20px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #6b6b8d;
+      margin-top: 12px;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 20px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      border-radius: 0;
+    }
+
+    .sidebar-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+    .sidebar-item.active { background: rgba(123,104,238,0.2); color: #a78bfa; }
+
+    .sidebar-item svg { flex-shrink: 0; opacity: 0.6; }
+    .sidebar-item:hover svg, .sidebar-item.active svg { opacity: 1; }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-size: 11px;
+      color: #6b6b8d;
+    }
+
+    /* ── Main Layout ── */
+    .main {
+      margin-left: var(--sidebar-width);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    .header {
+      height: var(--header-height);
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .header-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--text-secondary);
+    }
+
+    .header-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .header-breadcrumb strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .header-breadcrumb .sep { opacity: 0.4; }
+
+    .header-search {
+      margin-left: auto;
+      position: relative;
+    }
+
+    .header-search input {
+      width: 260px;
+      padding: 7px 12px 7px 34px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      background: #f9fafb;
+      transition: border-color 0.15s, background 0.15s;
+      outline: none;
+    }
+
+    .header-search input:focus {
+      border-color: #7b68ee;
+      background: #fff;
+    }
+
+    .header-search svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af;
+    }
+
+    .header-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7b68ee, #a78bfa);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* ── Board Toolbar ── */
+    .board-toolbar {
+      display: flex;
+      align-items: center;
+      padding: 12px 24px;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .board-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .board-view-tabs {
+      display: flex;
+      gap: 2px;
+      margin-left: 24px;
+      background: #e5e7eb;
+      border-radius: 6px;
+      padding: 2px;
+    }
+
+    .board-view-tab {
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      color: var(--text-secondary);
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+
+    .board-view-tab.active {
+      background: #fff;
+      color: var(--text-primary);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    .board-filter-btn {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+
+    .board-filter-btn:hover { border-color: #9ca3af; }
+
+    /* ── Kanban Board ── */
+    .board {
+      flex: 1;
+      display: flex;
+      gap: 16px;
+      padding: 0 24px 24px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-behavior: smooth;
+    }
+
+    .board::-webkit-scrollbar { height: 6px; }
+    .board::-webkit-scrollbar-track { background: transparent; }
+    .board::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+
+    .column {
+      min-width: 290px;
+      max-width: 320px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-radius: var(--radius);
+      background: #e8eaef;
+    }
+
+    .column-header {
+      display: flex;
+      align-items: center;
+      padding: 12px 14px;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .column-color {
+      width: 4px;
+      height: 20px;
+      border-radius: 2px;
+    }
+
+    .column-name {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .column-count {
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(0,0,0,0.08);
+      color: var(--text-secondary);
+      padding: 1px 8px;
+      border-radius: 10px;
+      margin-left: 2px;
+    }
+
+    .column-cards {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 8px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .column-cards::-webkit-scrollbar { width: 4px; }
+    .column-cards::-webkit-scrollbar-track { background: transparent; }
+    .column-cards::-webkit-scrollbar-thumb { background: #c5c8d0; border-radius: 2px; }
+
+    /* ── Task Card ── */
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow-card);
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-card-hover);
+      transform: translateY(-1px);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.45;
+      margin-bottom: 10px;
+      color: var(--text-primary);
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .priority {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .priority.high { background: #fde8e8; color: #c0392b; }
+    .priority.medium { background: #fef3cd; color: #b8860b; }
+    .priority.low { background: #d4edda; color: #27753a; }
+
+    .assignee {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #eef2ff;
+      color: #4338ca;
+    }
+
+    .due-date {
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .subtasks-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .subtasks-indicator svg { flex-shrink: 0; }
+
+    /* ── Overlay for mobile sidebar ── */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 99;
+    }
+
+    .sidebar-overlay.active { display: block; }
+
+    /* ── Responsive ── */
+    @media (max-width: 1024px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .header-menu-btn { display: flex; }
+      .header-search input { width: 180px; }
+    }
+
+    @media (max-width: 640px) {
+      .board {
+        flex-direction: column;
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 0 12px 24px;
+        gap: 12px;
+      }
+      .column {
+        min-width: unset;
+        max-width: unset;
+        max-height: 400px;
+      }
+      .board-toolbar { padding: 12px; flex-wrap: wrap; }
+      .board-title { font-size: 16px; }
+      .header { padding: 0 12px; }
+      .header-search input { width: 140px; }
+      .board-view-tabs { margin-left: 0; }
     }
   </style>
 </head>
 <body>
-  <h1>Hello from ClickUp Dummy!</h1>
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <rect width="24" height="24" rx="6" fill="#7b68ee"/>
+        <path d="M6 14l4-4 3 3 5-6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>ClickUp</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">Favorites</div>
+      <div class="sidebar-item active">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M2 6h12"/></svg>
+        Dummy Dashboard
+      </div>
+      <div class="sidebar-section">Spaces</div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4a2 2 0 012-2h6a2 2 0 012 2v8"/><path d="M1 14h14"/></svg>
+        Engineering
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+        Design
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h8v8H4z"/><path d="M8 4v8M4 8h8"/></svg>
+        Marketing
+      </div>
+      <div class="sidebar-section">Views</div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="4" height="10" rx="1"/><rect x="6" y="1" width="4" height="14" rx="1"/><rect x="11" y="5" width="4" height="8" rx="1"/></svg>
+        Board
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h12M2 8h12M2 12h8"/></svg>
+        List
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M2 6h12M6 2v12M10 2v12M2 10h12"/></svg>
+        Calendar
+      </div>
+    </nav>
+    <div class="sidebar-footer">Workspace &middot; Free Plan</div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main">
+    <!-- Header -->
+    <header class="header">
+      <button class="header-menu-btn" id="menuBtn" aria-label="Open menu">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h14M3 10h14M3 14h14"/></svg>
+      </button>
+      <div class="header-breadcrumb">
+        <span>Spaces</span>
+        <span class="sep">/</span>
+        <span>Engineering</span>
+        <span class="sep">/</span>
+        <strong>Dummy Dashboard Project</strong>
+      </div>
+      <div class="header-search">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="5"/><path d="M11 11l3 3"/></svg>
+        <input type="text" placeholder="Search tasks...">
+      </div>
+      <div class="header-avatar" title="Aleem">A</div>
+    </header>
+
+    <!-- Board Toolbar -->
+    <div class="board-toolbar">
+      <h1 class="board-title">Board</h1>
+      <div class="board-view-tabs">
+        <button class="board-view-tab active">Board</button>
+        <button class="board-view-tab">List</button>
+        <button class="board-view-tab">Calendar</button>
+      </div>
+      <button class="board-filter-btn">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 2h12M3 7h8M5 12h4"/></svg>
+        Filter
+      </button>
+    </div>
+
+    <!-- Kanban Board -->
+    <div class="board" id="board"></div>
+  </div>
+
+  <script>
+    // ── Data ──
+    const columns = [
+      {
+        name: 'Backlog',
+        color: '#e8384f',
+        tasks: [
+          { title: 'Define project scope and milestones', priority: 'high', assignee: 'PM', due: 'Mar 1' },
+          { title: 'Gather UI/UX requirements from stakeholders', priority: 'medium', assignee: 'PM', due: 'Mar 3' },
+          { title: 'Research analytics libraries (Chart.js vs D3)', priority: 'low', assignee: 'Frontend', due: 'Mar 5' },
+          { title: 'Draft database schema for dashboard metrics', priority: 'high', assignee: 'Backend', due: 'Mar 4' },
+          { title: 'Set up CI/CD pipeline configuration', priority: 'medium', assignee: 'Backend', due: 'Mar 6' },
+          { title: 'Create accessibility audit checklist', priority: 'low', assignee: 'QA', due: 'Mar 7' },
+          { title: 'Evaluate hosting and deployment options', priority: 'medium', assignee: 'Backend', due: 'Mar 8' },
+          { title: 'Plan sprint retrospective format', priority: 'low', assignee: 'PM', due: 'Mar 10' },
+        ]
+      },
+      {
+        name: 'To Do',
+        color: '#4169e1',
+        tasks: [
+          { title: 'Dashboard main page layout', priority: 'high', assignee: 'Frontend', due: 'Mar 5', subtasks: ['Header section', 'Widget grid', 'Charts panel'] },
+          { title: 'Design sidebar navigation component', priority: 'high', assignee: 'Frontend', due: 'Mar 4' },
+          { title: 'Create REST API for task aggregation', priority: 'high', assignee: 'Backend', due: 'Mar 6' },
+          { title: 'Build user authentication flow', priority: 'high', assignee: 'Backend', due: 'Mar 7' },
+          { title: 'Write unit tests for data layer', priority: 'medium', assignee: 'QA', due: 'Mar 8' },
+          { title: 'Implement dark mode theme toggle', priority: 'low', assignee: 'Frontend', due: 'Mar 10' },
+          { title: 'Set up error logging service integration', priority: 'medium', assignee: 'Backend', due: 'Mar 9' },
+          { title: 'Design notification bell dropdown', priority: 'medium', assignee: 'Frontend', due: 'Mar 11' },
+          { title: 'Create onboarding tooltip sequence', priority: 'low', assignee: 'Frontend', due: 'Mar 12' },
+          { title: 'Draft API rate limiting strategy', priority: 'medium', assignee: 'Backend', due: 'Mar 10' },
+          { title: 'Build CSV export for task data', priority: 'low', assignee: 'Backend', due: 'Mar 14' },
+        ]
+      },
+      {
+        name: 'In Progress',
+        color: '#f5a623',
+        tasks: [
+          { title: 'Implement Kanban board drag-and-drop', priority: 'high', assignee: 'Frontend', due: 'Mar 3' },
+          { title: 'Build real-time WebSocket updates', priority: 'high', assignee: 'Backend', due: 'Mar 4' },
+          { title: 'Style task card component with hover states', priority: 'medium', assignee: 'Frontend', due: 'Mar 5' },
+          { title: 'Integrate third-party calendar sync API', priority: 'medium', assignee: 'Backend', due: 'Mar 6', subtasks: ['Google Calendar', 'Outlook sync'] },
+          { title: 'Create reusable modal dialog component', priority: 'low', assignee: 'Frontend', due: 'Mar 7' },
+          { title: 'Optimize SQL queries for dashboard stats', priority: 'high', assignee: 'Backend', due: 'Mar 5' },
+          { title: 'Add keyboard shortcuts for navigation', priority: 'low', assignee: 'Frontend', due: 'Mar 8' },
+        ]
+      },
+      {
+        name: 'In Review / QA',
+        color: '#7b68ee',
+        tasks: [
+          { title: 'Code review: user profile settings page', priority: 'high', assignee: 'Frontend', due: 'Mar 2' },
+          { title: 'QA regression suite for sprint 4 features', priority: 'high', assignee: 'QA', due: 'Mar 3' },
+          { title: 'Verify responsive layout on mobile devices', priority: 'medium', assignee: 'QA', due: 'Mar 4' },
+          { title: 'Security audit for authentication endpoints', priority: 'high', assignee: 'QA', due: 'Mar 3' },
+          { title: 'Review pull request: notification system', priority: 'medium', assignee: 'Backend', due: 'Mar 5' },
+          { title: 'Performance test dashboard load times', priority: 'medium', assignee: 'QA', due: 'Mar 5', subtasks: ['Initial load', 'Data refresh', 'Concurrent users'] },
+          { title: 'Cross-browser compatibility testing', priority: 'low', assignee: 'QA', due: 'Mar 6' },
+        ]
+      },
+      {
+        name: 'Done',
+        color: '#2ecc71',
+        tasks: [
+          { title: 'Project repository setup and scaffolding', priority: 'high', assignee: 'Backend', due: 'Feb 20' },
+          { title: 'Design system: color palette and typography', priority: 'high', assignee: 'Frontend', due: 'Feb 22' },
+          { title: 'Configure ESLint and Prettier rules', priority: 'low', assignee: 'Frontend', due: 'Feb 21' },
+          { title: 'Create Figma mockups for dashboard views', priority: 'high', assignee: 'PM', due: 'Feb 24' },
+          { title: 'Implement login page with form validation', priority: 'medium', assignee: 'Frontend', due: 'Feb 26' },
+          { title: 'Set up PostgreSQL database and migrations', priority: 'high', assignee: 'Backend', due: 'Feb 25' },
+          { title: 'Write project README and contribution guide', priority: 'low', assignee: 'PM', due: 'Feb 28' },
+        ]
+      }
+    ];
+
+    // ── Render ──
+    const board = document.getElementById('board');
+
+    function renderCard(task) {
+      const subtasksHTML = task.subtasks
+        ? `<div class="subtasks-indicator">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 6h8M6 2v8"/></svg>
+            ${task.subtasks.length} subtask${task.subtasks.length > 1 ? 's' : ''}: ${task.subtasks.join(', ')}
+          </div>`
+        : '';
+
+      return `
+        <div class="card">
+          <div class="card-title">${task.title}</div>
+          <div class="card-meta">
+            <span class="priority ${task.priority}">${task.priority}</span>
+            <span class="assignee">${task.assignee}</span>
+            <span class="due-date">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="2" width="9" height="8" rx="1.5"/><path d="M1 5h9M4 1v2M7 1v2"/></svg>
+              ${task.due}
+            </span>
+          </div>
+          ${subtasksHTML}
+        </div>
+      `;
+    }
+
+    function renderColumn(col) {
+      const div = document.createElement('div');
+      div.className = 'column';
+      div.innerHTML = `
+        <div class="column-header">
+          <div class="column-color" style="background:${col.color}"></div>
+          <span class="column-name">${col.name}</span>
+          <span class="column-count">${col.tasks.length}</span>
+        </div>
+        <div class="column-cards">
+          ${col.tasks.map(renderCard).join('')}
+        </div>
+      `;
+      return div;
+    }
+
+    columns.forEach(col => board.appendChild(renderColumn(col)));
+
+    // ── Search filter ──
+    const searchInput = document.querySelector('.header-search input');
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.toLowerCase();
+      document.querySelectorAll('.card').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(query) ? '' : 'none';
+      });
+    });
+
+    // ── Mobile sidebar toggle ──
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const menuBtn = document.getElementById('menuBtn');
+
+    menuBtn.addEventListener('click', () => {
+      sidebar.classList.add('open');
+      overlay.classList.add('active');
+    });
+
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('active');
+    });
+  </script>
 </body>
 </html>
